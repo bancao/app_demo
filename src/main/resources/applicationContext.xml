@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:context="http://www.springframework.org/schema/context" xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:jdbc="http://www.springframework.org/schema/jdbc" xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:cache="http://www.springframework.org/schema/cache"
+	xmlns:mvc="http://www.springframework.org/schema/mvc" xmlns:p="http://www.springframework.org/schema/p"
+	xsi:schemaLocation="
+			http://www.springframework.org/schema/beans
+        	http://www.springframework.org/schema/beans/spring-beans-4.3.xsd
+			http://www.springframework.org/schema/context
+			http://www.springframework.org/schema/context/spring-context-4.3.xsd
+			http://www.springframework.org/schema/tx
+			http://www.springframework.org/schema/tx/spring-tx-4.3.xsd 
+                        http://www.springframework.org/schema/mvc  
+                        http://www.springframework.org/schema/mvc/spring-mvc-4.3.xsd
+        	http://www.springframework.org/schema/jdbc
+        	http://www.springframework.org/schema/jdbc/spring-jdbc-4.3.xsd
+        	http://www.springframework.org/schema/aop
+        	http://www.springframework.org/schema/aop/spring-aop.xsd
+			http://www.springframework.org/schema/cache
+	        http://www.springframework.org/schema/cache/spring-cache.xsd">
+	<bean id="propertyConfigurer" class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+		<property name="locations">
+			<list>
+				<value>classpath:config\${application.env}\database.properties</value>
+				<value>classpath:config\${application.env}\rest.properties</value>
+				<value>classpath:config\${application.env}\redis.properties</value>
+				<value>classpath:config\${application.env}\mongodb.properties</value>
+			</list>
+		</property>
+	</bean>
+
+	<!-- <import resource="classpath:Xmemcached.xml" /> -->
+	<import resource="classpath:spring-ctx-mybatis.xml" />
+	<!-- 
+	<import resource="classpath:mongodb.xml" />
+	<import resource="classpath:rest-api.xml" />
+	 -->
+	
+	<import resource="classpath:Jedis.xml" />
+	<import resource="classpath:rest-api.xml" />
+	<!-- 读写分离 -->
+	<import resource="classpath:datasource-master.xml" />
+	<import resource="classpath:datasource-slave.xml" />
+	<context:component-scan base-package="com.cprt.demo.web" />
+	<context:component-scan base-package="com.cprt.demo.service" />
+	<context:component-scan base-package="com.cprt.demo.domain" />
+	<context:component-scan base-package="com.cprt.demo.security" />
+	<context:component-scan base-package="com.cprt.demo.utils" />
+	
+	<!-- 添加注解驱动 -->
+	<mvc:annotation-driven />
+	<aop:aspectj-autoproxy />
+	
+	<!-- 
+	<cache:annotation-driven cache-manager="cacheManager" />
+	<bean id="cacheManager" class="org.springframework.cache.ehcache.EhCacheCacheManager">
+		<property name="cacheManager">
+			<bean class="org.springframework.cache.ehcache.EhCacheManagerFactoryBean">
+				<property name="configLocation" value="classpath:ehcache-config.xml"></property>
+			</bean>
+		</property>
+	</bean>
+	 -->
+	<bean id="ehcacheManager"
+		class="org.springframework.cache.ehcache.EhCacheManagerFactoryBean">
+		<property name="configLocation" value="classpath:/ehcache-shiro.xml" />
+	</bean>
+	
+	<bean id="configPropertyConfigurer" class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+		<property name="locations">
+			<list>
+				<value>classpath:config\global_config.properties</value>
+			</list>
+		</property>
+		<property name="fileEncoding" value="UTF-8"></property>
+	</bean> 
+	<!--  系统变量注入 -->
+	<bean id="applicationProperties" class="com.cprt.demo.utils.configuration.ApplicationProperties" init-method="afterPropertiesSet">  
+        <property name="configPropertyConfigurer" ref="configPropertyConfigurer"></property>
+    </bean> 
+
+	<bean id="druid-stat-interceptor"
+		  class="com.alibaba.druid.support.spring.stat.DruidStatInterceptor">
+	</bean>
+
+	<bean id="druid-stat-pointcut" class="org.springframework.aop.support.JdkRegexpMethodPointcut"
+		  scope="prototype">
+		<property name="patterns">
+			<list>
+				<value>com.cport.demo.service.*</value>
+				<value>com.cport.demo。web.service.*</value>
+			</list>
+		</property>
+	</bean>
+	<aop:config proxy-target-class="true">
+		<aop:advisor advice-ref="druid-stat-interceptor"
+					 pointcut-ref="druid-stat-pointcut"/>
+	</aop:config>
+
+</beans>

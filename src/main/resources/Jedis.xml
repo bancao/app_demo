@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:dwr="http://www.directwebremoting.org/schema/spring-dwr"
+	xmlns:amq="http://activemq.apache.org/schema/core" xmlns:jms="http://www.springframework.org/schema/jms"
+	xmlns:util="http://www.springframework.org/schema/util" xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="
+        http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+        http://www.directwebremoting.org/schema/spring-dwr http://www.directwebremoting.org/schema/spring-dwr-2.0.xsd
+        http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-2.0.xsd
+        http://activemq.apache.org/schema/core http://activemq.apache.org/schema/core/activemq-core.xsd
+        http://www.springframework.org/schema/jms http://www.springframework.org/schema/jms/spring-jms-2.5.xsd">
+
+	<bean id="jedisPoolConfig" class="redis.clients.jedis.JedisPoolConfig">
+		<!-- 最大活跃连接数 -->
+		<property name="maxTotal" value="${redis.pool.maxActive}" />
+		<!-- 最大闲置数量 -->
+		<property name="maxIdle" value="${redis.pool.maxIdle}" />
+		<!-- 最大等待时间 -->
+		<property name="maxWaitMillis" value="${redis.pool.maxWait}" />
+		<!-- 调用borrow时是否检查其有效性 -->
+		<property name="testOnBorrow" value="${redis.pool.testOnBorrow}" />
+		<!-- 调用return时是否检查其有效性 -->
+		<property name="testOnReturn" value="${redis.pool.testOnReturn}" />
+		<!-- 空闲时是否检查对象有效性 -->
+		<property name="testWhileIdle" value="${redis.pool.testWhileIdle}" />
+	</bean>
+      
+    <bean id="jedisCluster" class="redis.clients.jedis.JedisCluster">
+		<constructor-arg index="0">
+		<set>
+			<bean class="redis.clients.jedis.HostAndPort">
+				<constructor-arg index="0" value="${redis1.ip}"/>
+				<constructor-arg index="1" value="${redis1.port}" type="int" />
+			</bean>
+			<bean class="redis.clients.jedis.HostAndPort">
+				<constructor-arg index="0" value="${redis2.ip}"/>
+				<constructor-arg index="1" value="${redis2.port}" type="int" />
+			</bean>
+			<bean class="redis.clients.jedis.HostAndPort">
+				<constructor-arg index="0" value="${redis3.ip}"/>
+				<constructor-arg index="1" value="${redis3.port}" type="int" />
+			</bean>
+		</set>
+		</constructor-arg>
+			<constructor-arg index="1" value="2000" type="int"></constructor-arg>
+			<constructor-arg index="2" value="100" type="int"></constructor-arg>
+			<constructor-arg index="3" ref="jedisPoolConfig"></constructor-arg>
+		</bean>
+	
+    <!-- 通用缓存 -->
+	<bean id="redisClient" class="com.cprt.demo.utils.redis.RedisClusterUtilImpl">
+	    <property name="jedisCluster" ref="jedisCluster"></property>
+	</bean>
+
+  
+</beans>

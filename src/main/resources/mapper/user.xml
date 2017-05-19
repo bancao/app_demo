@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>  
+<!DOCTYPE mapper  
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">  
+<mapper namespace="com.cprt.demo.domain.repository.system.UserMapper">
+
+    <resultMap type="com.cprt.demo.domain.model.system.User" id="BasicUserMap">  
+        <id property="id" column="id" jdbcType="BIGINT"/>
+        <result property="userName" column="user_name" jdbcType="VARCHAR"/>
+        <result property="password" column="password" jdbcType="VARCHAR"/>
+        <result property="lastLoginTime" column="last_login_time" jdbcType="TIMESTAMP"/>
+        <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
+        <result property="status" column="status" jdbcType="INTEGER"/>
+    </resultMap> 
+  
+  
+   <select id="selectByAccountAndPassword" parameterType="com.cprt.demo.domain.model.system.User" resultType="com.cprt.demo.domain.model.system.User">
+    	SELECT
+	    	id as id,
+	    	user_name as userName,
+	    	password as password
+		FROM 
+		sys_user 
+	    WHERE 
+	    user_name = #{userName} and password = #{password} and status = 1
+    </select>
+    
+    <select id="findAuthorities" parameterType="String" resultType="String">
+		SELECT distinct
+			sra.authorities
+		FROM
+			sys_role_authority sra
+		WHERE
+			sra.role IN (
+				SELECT sur.rid
+				FROM sys_user_role sur
+				WHERE sur.uid = #{userId}
+			)
+	</select>
+</mapper>
